@@ -78,6 +78,12 @@ python main.py
   - 大小：调整桌宠尺寸
   - 退出：关闭程序
 
+## 致谢
+
+本项目使用了以下开源项目：
+
+- [GPT-SoVITS](https://github.com/RVC-Boss/GPT-SoVITS/tree/main/GPT_SoVITS) - 基于 GPT 的少样本语音克隆框架，用于实现角色专属语音合成。感谢 [RVC-Boss](https://github.com/RVC-Boss) 提供的优秀开源项目。
+
 ## 技术栈
 
 - PyQt5：桌面 GUI 框架
