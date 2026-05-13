@@ -84,6 +84,10 @@ python main.py
 
 - [GPT-SoVITS](https://github.com/RVC-Boss/GPT-SoVITS/tree/main/GPT_SoVITS) - 基于 GPT 的少样本语音克隆框架，用于实现角色专属语音合成。感谢 [RVC-Boss](https://github.com/RVC-Boss) 提供的优秀开源项目。
 
+### 音频素材来源
+
+训练音频素材来自 B 站视频：https://b23.tv/WLU6icy
+
 ## 技术栈
 
 - PyQt5：桌面 GUI 框架
