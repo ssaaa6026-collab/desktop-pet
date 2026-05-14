@@ -1,6 +1,7 @@
 import random
 import json
 import os
+import sys
 import time
 from datetime import datetime
 
@@ -15,99 +16,11 @@ from pet_sprite import PetState
 
 import urllib.request
 import urllib.error
-import subprocess
-import threading
-import tempfile
-import wave
-import json as json_module
 
-GPT_SOVITS_API = os.environ.get("GPT_SOVITS_API", "http://127.0.0.1:9880/tts")
-_REFERENCE_DIR = os.environ.get("GPT_SOVITS_LOGS_DIR", "")
-REFERENCE_TEXT = os.environ.get("GPT_SOVITS_REF_TEXT", "飞行雪绒，这个名字一听就知道，是因为雪绒很白的缘故。")
-REFERENCE_LANG = "zh"
-REFERENCE_AUDIO = ""
-
-if _REFERENCE_DIR and os.path.exists(_REFERENCE_DIR):
-    _ref_name = os.listdir(_REFERENCE_DIR)[0]
-    _wav_dir = os.path.join(_REFERENCE_DIR, _ref_name, "5-wav32k")
-    if os.path.exists(_wav_dir):
-        _wavs = [f for f in os.listdir(_wav_dir) if f.endswith(".wav")]
-        if _wavs:
-            REFERENCE_AUDIO = os.path.join(_wav_dir, _wavs[0])
-
-TRAIN_ITEMS = []
-def _load_train_texts():
-    global TRAIN_ITEMS
-    try:
-        txt_file = os.path.join(_REFERENCE_DIR, _ref_name, "2-name2text.txt")
-        wav_dir = os.path.join(_REFERENCE_DIR, _ref_name, "5-wav32k")
-        with open(txt_file, "r", encoding="utf-8") as f:
-            for line in f:
-                parts = line.strip().split("\t")
-                if len(parts) >= 4:
-                    wav_name = parts[0].strip()
-                    text = parts[3].strip()
-                    wav_path = os.path.join(wav_dir, wav_name)
-                    if text and os.path.exists(wav_path):
-                        TRAIN_ITEMS.append({"wav": wav_path, "text": text})
-    except Exception:
-        pass
-
-_load_train_texts()
-
-
-class SpeakThread(QThread):
-    finished = pyqtSignal()
-
-    def __init__(self, text):
-        super().__init__()
-        self.text = text
-
-    def run(self):
-        import re
-        import pygame
-        clean = self.text.replace("~", "").replace("！", "。").replace("？", "。")
-        clean = re.sub(r'[^一-龥　-〿＀-￯\w\s,.。,，!！?？]', '', clean)
-        clean = clean.strip()
-        if not clean:
-            self.finished.emit()
-            return
-        try:
-            payload = {
-                "text": clean,
-                "text_lang": REFERENCE_LANG,
-                "ref_audio_path": REFERENCE_AUDIO,
-                "prompt_text": REFERENCE_TEXT,
-                "prompt_lang": REFERENCE_LANG,
-                "text_split_method": "cut5",
-                "batch_size": 1,
-                "media_type": "wav"
-            }
-            data = json_module.dumps(payload).encode("utf-8")
-            req = urllib.request.Request(
-                GPT_SOVITS_API,
-                data=data,
-                headers={"Content-Type": "application/json"}
-            )
-            with urllib.request.urlopen(req, timeout=60) as resp:
-                audio_data = resp.read()
-            if audio_data:
-                with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp:
-                    tmp.write(audio_data)
-                    tmp_path = tmp.name
-                pygame.mixer.init()
-                pygame.mixer.music.load(tmp_path)
-                pygame.mixer.music.play()
-                while pygame.mixer.music.get_busy():
-                    pygame.time.wait(100)
-                pygame.mixer.quit()
-                try:
-                    os.remove(tmp_path)
-                except:
-                    pass
-        except Exception as e:
-            print(f"GPT-SoVITS error: {e}")
-        self.finished.emit()
+if getattr(sys, 'frozen', False):
+    _app_dir = os.path.dirname(sys.executable)
+else:
+    _app_dir = os.path.dirname(__file__)
 
 API_BASE_URL = "https://token-plan-cn.xiaomimimo.com/v1"
 API_KEY = os.environ.get("MIMO_API_KEY", "your_api_key_here")
@@ -140,7 +53,7 @@ SYSTEM_PROMPT = """你是爱弥斯，外号"飞行雪绒"，是漂泊者的养�
 - 只使用纯文字回复
 - 保持角色一致性，不要跳出人设"""
 
-HISTORY_FILE = os.path.join(os.path.dirname(__file__), "data", "chat_history.json")
+HISTORY_FILE = os.path.join(_app_dir, "data", "chat_history.json")
 
 
 def _load_history():
@@ -363,18 +276,14 @@ class DialogueManager(QObject):
         self._hide_timer = QTimer(self)
         self._hide_timer.timeout.connect(self.hide_bubble)
         self._api_thread = None
-        self._speak_thread = None
         self._chat_history = _load_history()
-        self._idle_speech_timer = QTimer(self)
-        self._idle_speech_timer.timeout.connect(self._play_random_train_text)
 
-    def show_bubble(self, text, duration=4000, is_user=False, wait_speech=False):
+    def show_bubble(self, text, duration=4000, is_user=False):
         self.hide_bubble()
         self.bubble = ChatBubble(text, is_user)
         self.bubble.show()
         self._update_bubble_position()
-        if not wait_speech:
-            self._hide_timer.start(duration)
+        self._hide_timer.start(duration)
 
     def _update_bubble_position(self):
         if not self.bubble:
@@ -386,9 +295,6 @@ class DialogueManager(QObject):
 
     def hide_bubble(self):
         self._hide_timer.stop()
-        if self._speak_thread and self._speak_thread.isRunning():
-            self._speak_thread.terminate()
-            self._speak_thread = None
         if self.bubble:
             self.bubble.close()
             self.bubble = None
@@ -419,16 +325,7 @@ class DialogueManager(QObject):
             reply = "嗯..."
         self._chat_history.append({"role": "assistant", "content": reply})
         _save_history(self._chat_history)
-        self.show_bubble(reply, 6000, is_user=False, wait_speech=True)
-        self._speak_thread = SpeakThread(reply)
-        self._speak_thread.finished.connect(self._on_speech_finished)
-        self._speak_thread.start()
-
-    def _on_speech_finished(self):
-        self._hide_timer.stop()
-        if self.bubble:
-            self.bubble.close()
-            self.bubble = None
+        self.show_bubble(reply, 6000, is_user=False)
 
     def _on_api_error(self, error):
         print(f"API error: {error}")
@@ -447,40 +344,6 @@ class DialogueManager(QObject):
     def on_pet_position_changed(self, x, y):
         self._update_bubble_position()
         self._update_chat_input_position()
-
-    def start_idle_speech(self):
-        if TRAIN_ITEMS:
-            self._idle_speech_timer.start(random.randint(8000, 15000))
-
-    def stop_idle_speech(self):
-        self._idle_speech_timer.stop()
-
-    def _play_random_train_text(self):
-        if self.bubble or (self._speak_thread and self._speak_thread.isRunning()):
-            self._idle_speech_timer.start(random.randint(8000, 15000))
-            return
-        if TRAIN_ITEMS:
-            item = random.choice(TRAIN_ITEMS)
-            self.show_bubble(item["text"], 6000, is_user=False, wait_speech=True)
-            self._play_wav(item["wav"])
-        self._idle_speech_timer.start(random.randint(10000, 20000))
-
-    def _play_wav(self, wav_path):
-        def _play():
-            import pygame
-            try:
-                pygame.mixer.init()
-                pygame.mixer.music.load(wav_path)
-                pygame.mixer.music.play()
-                while pygame.mixer.music.get_busy():
-                    pygame.time.wait(100)
-                pygame.mixer.quit()
-            except Exception as e:
-                print(f"WAV play error: {e}")
-        self._speak_thread = QThread()
-        self._speak_thread.run = _play
-        self._speak_thread.finished.connect(self._on_speech_finished)
-        self._speak_thread.start()
 
     def show_chat_input(self):
         if self.chat_input and self.chat_input.isVisible():

@@ -38,24 +38,34 @@ pip install -r requirements.txt
 
 ## 配置
 
-### 环境变量
+### 1. 创建 .env 文件
+
+复制 `.env.example` 为 `.env`，填入你的配置：
 
 ```bash
-# mimo-v2.5 API Key（必需）
-set MIMO_API_KEY=your_api_key_here
-
-# GPT-SoVITS 配置（可选，用于语音功能）
-set GPT_SOVITS_API=http://127.0.0.1:9880/tts
-set GPT_SOVITS_LOGS_DIR=path/to/your/GPT-SoVITS/logs
-set GPT_SOVITS_REF_TEXT=参考音频的文本内容
+cp .env.example .env
 ```
 
-### 启动 GPT-SoVITS（可选）
+编辑 `.env` 文件：
+
+```env
+# mimo API Key（必需）
+MIMO_API_KEY=你的API密钥
+
+# GPT-SoVITS 配置（可选，用于语音功能）
+GPT_SOVITS_API=http://127.0.0.1:9880/tts
+GPT_SOVITS_LOGS_DIR=E:\你的路径\GPT-SoVITS\logs
+GPT_SOVITS_REF_TEXT=飞行雪绒，这个名字一听就知道，是因为雪绒很白的缘故。
+```
+
+**GPT_SOVITS_LOGS_DIR** 填你 GPT-SoVITS 项目的 `logs` 文件夹路径，里面应包含训练好的模型文件夹（如 `爱弥斯`）。
+
+### 2. 启动 GPT-SoVITS（可选）
 
 如果需要语音功能，需要先启动 GPT-SoVITS API：
 
 ```bash
-cd /d E:\path\to\GPT-SoVITS
+cd /d E:\你的路径\GPT-SoVITS
 py -3.9 api_v2.py
 ```
 

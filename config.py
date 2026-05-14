@@ -1,8 +1,13 @@
 import json
 import os
+import sys
 from datetime import datetime
 
-DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
+if getattr(sys, 'frozen', False):
+    DATA_DIR = os.path.join(os.path.dirname(sys.executable), "data")
+else:
+    DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
+
 REMINDERS_FILE = os.path.join(DATA_DIR, "reminders.json")
 SETTINGS_FILE = os.path.join(DATA_DIR, "settings.json")
 

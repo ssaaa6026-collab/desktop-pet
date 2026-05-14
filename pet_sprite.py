@@ -1,7 +1,14 @@
 import os
+import sys
 import random
 import time
 from enum import Enum, auto
+
+
+def _get_asset_path():
+    if getattr(sys, 'frozen', False):
+        return os.path.join(sys._MEIPASS, "assets", "ams.gif")
+    return os.path.join(os.path.dirname(__file__), "assets", "ams.gif")
 
 from PIL import Image, ImageFilter
 from PyQt5.QtCore import Qt, QTimer, pyqtSignal, QObject
@@ -38,6 +45,7 @@ class PetSprite(QObject):
         self._fly_dx = 0
         self._fly_dy = 0
         self._last_interaction = 0
+        self._happy_count = 0
 
         self._frames_right = []
         self._frames_left = []
@@ -230,6 +238,12 @@ class PetSprite(QObject):
 
     def _random_state_change(self):
         if self.state in (PetState.HAPPY, PetState.TALK):
+            self._happy_count += 1
+            if self._happy_count >= 2:
+                self._happy_count = 0
+                self.set_state(PetState.IDLE)
+                self._state_timer.start(random.randint(3000, 8000))
+                return
             self._state_timer.start(random.randint(2000, 4000))
             return
 
@@ -292,6 +306,5 @@ class PetSprite(QObject):
 
     def update_size(self, new_size):
         self.size = new_size
-        asset_path = os.path.join(os.path.dirname(__file__), "assets", "ams.gif")
-        self._load_images(asset_path)
+        self._load_images(_get_asset_path())
         self._start_gif_timer()

@@ -1,4 +1,5 @@
 import os
+import sys
 import time
 import random
 
@@ -9,8 +10,8 @@ from PyQt5.QtWidgets import (
 )
 from PyQt5.QtGui import QPainter, QCursor
 
-from pet_sprite import PetSprite, PetState
-from dialogue import DialogueManager
+from pet_sprite import PetSprite, PetState, _get_asset_path
+from dialogue_lite import DialogueManager
 from reminder import ReminderManager
 from config import load_settings, save_settings
 
@@ -27,9 +28,8 @@ class PetWindow(QMainWindow):
         )
         self.setAttribute(Qt.WA_TranslucentBackground)
 
-        asset_path = os.path.join(os.path.dirname(__file__), "assets", "ams.gif")
         self.pet = PetSprite(
-            asset_path,
+            _get_asset_path(),
             x=settings["pet_x"],
             y=settings["pet_y"],
             size=settings["pet_size"]
@@ -45,18 +45,8 @@ class PetWindow(QMainWindow):
         self._dragging = False
         self._drag_offset = QPoint()
 
-        self._idle_speech_enabled = True
-        self._idle_speech_start_timer = QTimer(self)
-        self._idle_speech_start_timer.setSingleShot(True)
-        self._idle_speech_start_timer.timeout.connect(self._start_idle_speech_if_enabled)
-        self._idle_speech_start_timer.start(10000)
-
         self._update_geometry()
         self.show()
-
-    def _start_idle_speech_if_enabled(self):
-        if self._idle_speech_enabled:
-            self.dialogue.start_idle_speech()
 
     def _update_geometry(self):
         x, y, w, h = self.pet.get_display_rect()
@@ -100,8 +90,6 @@ class PetWindow(QMainWindow):
                 self._dragging = True
                 self._drag_offset = event.globalPos() - self.pos()
                 self.pet.trigger_happy()
-                self.dialogue.stop_idle_speech()
-                self._idle_speech_start_timer.start(15000)
 
                 reply_texts = [
                     "嘿嘿，被发现了！",
@@ -115,8 +103,6 @@ class PetWindow(QMainWindow):
 
         elif event.button() == Qt.RightButton:
             if self._is_click_on_pet(event.globalPos()):
-                self.dialogue.stop_idle_speech()
-                self._idle_speech_start_timer.start(15000)
                 self._show_context_menu(event.globalPos())
 
     def mouseMoveEvent(self, event):
@@ -133,7 +119,6 @@ class PetWindow(QMainWindow):
                 self.pet._last_interaction = time.time() - 11000
                 self.pet.set_state(PetState.IDLE)
                 self.pet._state_timer.start(random.randint(3000, 6000))
-                self._idle_speech_start_timer.start(8000)
 
     def _show_context_menu(self, pos):
         menu = QMenu(self)
@@ -162,11 +147,6 @@ class PetWindow(QMainWindow):
         reminder_action.triggered.connect(self._open_reminder)
         menu.addAction(reminder_action)
 
-        speech_label = "关闭待机语音" if self._idle_speech_enabled else "开启待机语音"
-        speech_action = QAction(speech_label, self)
-        speech_action.triggered.connect(self._toggle_idle_speech)
-        menu.addAction(speech_action)
-
         menu.addSeparator()
 
         size_menu = menu.addMenu("大小")
@@ -188,13 +168,6 @@ class PetWindow(QMainWindow):
 
     def _open_reminder(self):
         self.reminder.open_dialog(self)
-
-    def _toggle_idle_speech(self):
-        self._idle_speech_enabled = not self._idle_speech_enabled
-        if self._idle_speech_enabled:
-            self.dialogue.start_idle_speech()
-        else:
-            self.dialogue.stop_idle_speech()
 
     def _on_reminder_triggered(self, content):
         self.dialogue.show_bubble(f"提醒：{content}", 6000)
