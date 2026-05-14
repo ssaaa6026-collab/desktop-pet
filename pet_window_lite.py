@@ -124,18 +124,19 @@ class PetWindow(QMainWindow):
         menu = QMenu(self)
         menu.setStyleSheet("""
             QMenu {
-                background-color: white;
-                border: 1px solid #ccc;
-                border-radius: 5px;
+                background-color: #fff0f5;
+                border: 1px solid #ffc0d0;
+                border-radius: 8px;
                 padding: 5px;
             }
             QMenu::item {
                 padding: 6px 20px;
                 font-family: "Microsoft YaHei";
                 font-size: 12px;
+                color: #5a3040;
             }
             QMenu::item:selected {
-                background-color: #e0e0ff;
+                background-color: #ffd0e0;
             }
         """)
 

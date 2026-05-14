@@ -132,7 +132,7 @@ class ChatBubble(QWidget):
         if is_user:
             label.setStyleSheet("""
                 QLabel {
-                    background-color: rgba(100, 180, 255, 220);
+                    background-color: rgba(255, 150, 180, 220);
                     color: white;
                     border-radius: 12px;
                     padding: 8px 12px;
@@ -141,10 +141,11 @@ class ChatBubble(QWidget):
         else:
             label.setStyleSheet("""
                 QLabel {
-                    background-color: rgba(255, 255, 255, 230);
-                    color: #333;
+                    background-color: rgba(255, 240, 245, 230);
+                    color: #5a3040;
                     border-radius: 12px;
                     padding: 8px 12px;
+                    border: 1px solid rgba(255, 180, 200, 100);
                 }
             """)
 
@@ -173,9 +174,9 @@ class ChatInput(QWidget):
         container = QWidget()
         container.setStyleSheet("""
             QWidget {
-                background-color: rgba(255, 255, 255, 240);
+                background-color: rgba(255, 240, 245, 245);
                 border-radius: 15px;
-                border: 1px solid rgba(200, 200, 220, 150);
+                border: 1px solid rgba(255, 180, 200, 150);
             }
         """)
         container_layout = QVBoxLayout(container)
@@ -183,7 +184,7 @@ class ChatInput(QWidget):
 
         header = QLabel("和飞行雪绒聊天")
         header.setFont(QFont("Microsoft YaHei", 9, QFont.Bold))
-        header.setStyleSheet("color: #666; background: transparent; border: none;")
+        header.setStyleSheet("color: #c06080; background: transparent; border: none;")
         header.setAlignment(Qt.AlignCenter)
         container_layout.addWidget(header)
 
@@ -195,13 +196,13 @@ class ChatInput(QWidget):
         self.input_box.setFont(QFont("Microsoft YaHei", 10))
         self.input_box.setStyleSheet("""
             QLineEdit {
-                border: 1px solid #ddd;
+                border: 1px solid #ffc0d0;
                 border-radius: 10px;
                 padding: 6px 10px;
                 background: white;
             }
             QLineEdit:focus {
-                border: 1px solid #a0c4ff;
+                border: 1px solid #ff8faa;
             }
         """)
         self.input_box.returnPressed.connect(self._send)
@@ -212,16 +213,16 @@ class ChatInput(QWidget):
         self.send_btn.setFont(QFont("Microsoft YaHei", 9))
         self.send_btn.setStyleSheet("""
             QPushButton {
-                background-color: #a0c4ff;
+                background-color: #ff8faa;
                 color: white;
                 border: none;
                 border-radius: 10px;
             }
             QPushButton:hover {
-                background-color: #80b0ff;
+                background-color: #ff7090;
             }
             QPushButton:pressed {
-                background-color: #6090e0;
+                background-color: #e06080;
             }
         """)
         self.send_btn.clicked.connect(self._send)
@@ -233,12 +234,12 @@ class ChatInput(QWidget):
         close_btn.setFont(QFont("Microsoft YaHei", 8))
         close_btn.setStyleSheet("""
             QPushButton {
-                color: #999;
+                color: #c08090;
                 background: transparent;
                 border: none;
             }
             QPushButton:hover {
-                color: #666;
+                color: #e06080;
             }
         """)
         close_btn.clicked.connect(self.close_chat)

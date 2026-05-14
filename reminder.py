@@ -21,22 +21,52 @@ class ReminderDialog(QDialog):
         self._load_list()
 
     def setup_ui(self):
+        self.setStyleSheet("""
+            QDialog {
+                background-color: #fff0f5;
+            }
+        """)
+
         layout = QVBoxLayout(self)
         layout.setSpacing(10)
 
         title = QLabel("日程提醒")
         title.setFont(QFont("Microsoft YaHei", 14, QFont.Bold))
         title.setAlignment(Qt.AlignCenter)
+        title.setStyleSheet("color: #c06080; background: transparent;")
         layout.addWidget(title)
 
         input_layout = QHBoxLayout()
         self.time_input = QLineEdit()
         self.time_input.setPlaceholderText("时间 (如: 2025-01-15 14:30)")
         self.time_input.setFont(QFont("Microsoft YaHei", 10))
+        self.time_input.setStyleSheet("""
+            QLineEdit {
+                border: 1px solid #ffc0d0;
+                border-radius: 8px;
+                padding: 6px 10px;
+                background: white;
+            }
+            QLineEdit:focus {
+                border: 1px solid #ff8faa;
+            }
+        """)
         input_layout.addWidget(self.time_input)
 
         add_btn = QPushButton("添加")
         add_btn.setFixedWidth(60)
+        add_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #ff8faa;
+                color: white;
+                border: none;
+                border-radius: 8px;
+                padding: 6px;
+            }
+            QPushButton:hover {
+                background-color: #ff7090;
+            }
+        """)
         add_btn.clicked.connect(self._add_reminder)
         input_layout.addWidget(add_btn)
         layout.addLayout(input_layout)
@@ -44,18 +74,69 @@ class ReminderDialog(QDialog):
         self.content_input = QLineEdit()
         self.content_input.setPlaceholderText("提醒内容")
         self.content_input.setFont(QFont("Microsoft YaHei", 10))
+        self.content_input.setStyleSheet("""
+            QLineEdit {
+                border: 1px solid #ffc0d0;
+                border-radius: 8px;
+                padding: 6px 10px;
+                background: white;
+            }
+            QLineEdit:focus {
+                border: 1px solid #ff8faa;
+            }
+        """)
         layout.addWidget(self.content_input)
 
         self.reminder_list = QListWidget()
         self.reminder_list.setFont(QFont("Microsoft YaHei", 10))
+        self.reminder_list.setStyleSheet("""
+            QListWidget {
+                border: 1px solid #ffc0d0;
+                border-radius: 8px;
+                background: white;
+                padding: 5px;
+            }
+            QListWidget::item {
+                padding: 4px;
+                border-bottom: 1px solid #ffe0e8;
+            }
+            QListWidget::item:selected {
+                background-color: #ffd0e0;
+                color: #5a3040;
+            }
+        """)
         layout.addWidget(self.reminder_list)
 
         btn_layout = QHBoxLayout()
         del_btn = QPushButton("删除选中")
+        del_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #ffa0b8;
+                color: white;
+                border: none;
+                border-radius: 8px;
+                padding: 8px;
+            }
+            QPushButton:hover {
+                background-color: #ff8098;
+            }
+        """)
         del_btn.clicked.connect(self._delete_reminder)
         btn_layout.addWidget(del_btn)
 
         close_btn = QPushButton("关闭")
+        close_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #e0d0d8;
+                color: #5a3040;
+                border: none;
+                border-radius: 8px;
+                padding: 8px;
+            }
+            QPushButton:hover {
+                background-color: #d0c0c8;
+            }
+        """)
         close_btn.clicked.connect(self.close)
         btn_layout.addWidget(close_btn)
         layout.addLayout(btn_layout)
