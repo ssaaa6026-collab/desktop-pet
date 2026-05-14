@@ -251,9 +251,12 @@ class PetSprite(QObject):
         idle_time = now - self._last_interaction
 
         if idle_time >= 10:
+            if self.state == PetState.FLY:
+                self._state_timer.start(random.randint(5000, 10000))
+                return
             if random.random() < 0.6:
                 self._start_fly()
-                self._state_timer.start(random.randint(3000, 6000))
+                self._state_timer.start(random.randint(5000, 10000))
                 return
 
         roll = random.random()
